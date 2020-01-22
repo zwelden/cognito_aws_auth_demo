@@ -7,6 +7,7 @@ import {
 } from 'amazon-cognito-identity-js';
 
 import 'bulma/css/bulma.css';
+import './scss/main.scss';
 
 const poolData = {
     UserPoolId: process.env.COGNITO_POOL_ID,
@@ -15,9 +16,14 @@ const poolData = {
 
 const userPool = new CognitoUserPool(poolData);
 
+// action buttons
 let registerUserBtn = document.getElementById('register-user-btn');
 let confirmCodeBtn = document.getElementById('confirm-code');
+let resendCodeBtn = document.getElementById('resend-code-btn');
 let loginBtn = document.getElementById('lodgin-btn');
+
+
+
 
 registerUserBtn.onclick = (event) => {
     let username_input = document.getElementById('username-create');
@@ -59,4 +65,34 @@ confirmCodeBtn.onclick = (event) => {
 
         console.log(result);
     });
+}
+
+
+// nav buttons
+let backToLoginBtn = document.getElementById('back-to-login-btn');
+let createAccountBtn = document.getElementById('create-account-btn');
+
+// nav effects 
+let hideAllCards = (cards) => {
+    cards.forEach((card) => {
+        card.classList.add('is-hidden');
+    })
+}
+
+backToLoginBtn.onclick = (event) => {
+    let cards = document.querySelectorAll('.auth-card');
+    let loginCard = document.querySelector('.login-card');
+
+    hideAllCards(cards);
+
+    loginCard.classList.remove('is-hidden');
+}
+
+createAccountBtn.onclick = (event) => {
+    let cards = document.querySelectorAll('.auth-card');
+    let createAccountCard = document.querySelector('.create-account-card');
+
+    hideAllCards(cards);
+
+    createAccountCard.classList.remove('is-hidden');
 }

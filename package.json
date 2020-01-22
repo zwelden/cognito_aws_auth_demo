@@ -9,9 +9,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "bulma": "^0.8.0",
     "core-js": "^3.6.4",
     "parcel-bundler": "^1.12.4",
-    "bulma": "^0.8.0"
+    "sass": "^1.25.0"
   },
   "dependencies": {
     "amazon-cognito-identity-js": "^3.2.2",

@@ -4,62 +4,108 @@
 
         <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
-    <body>
+    <body class="has-background-white-ter">
+        <div class="alert-container">
+            <div class="message is-success">
+                <div class="message-body">
+                    Something worked correctly.
+                </div>
+            </div>
+        </div>
+
         <div class="content">
-            <div class="columns">
-                <div class="column is-one-third is-offset-one-third">
-                    <br>
-                    <div class="card create-account-card">
+                <div class="auth-card-container">
+                    <div class="card auth-card create-account-card">
                         <div class="card-content">
-                            <div class="title">
+                            <div class="title has-text-centered">
                                 Create Account
                             </div>
                             <div class="field">
+                                <label for="username-create">Email</label>
                                 <input class="input" type="email" id="username-create">
                             </div> 
                             <div class="field">
+                                <label for="password-create">Password</label>
                                 <input class="input" type="password" id="password-create">
                             </div>
 
-                            <div>
-                                <button class="button is-primary" id="register-user-btn">Submit</button>
+                            <div class="level">
+                                <div class="level-right">
+                                    <div class="level-item">
+                                        <button class="button is-secondary" id="back-to-login-btn">Login</button>
+                                    </div>
+                                </div>
+
+                                <div class="level-right">
+                                    <div class="level-item">
+                                        <button class="button is-primary" id="register-user-btn">Submit</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
             
                     </div>
 
-                    <br>
-
-                    <div class="card code-confirm-card is-hidden">
+                    <div class="card auth-card code-confirm-card is-hidden">
                         <div class="card-content">
-                            <div class="title">
+                            <div class="title has-text-centered">
                                 Code Confirm
                             </div>
                             <div class="field">
                                 <input class="input" type="text" id="auth-confirm-code">
                             </div> 
-                            <div>
-                                <button class="button is-primary" id="confirm-code">Confirm</button>
+
+                            <div class="level">
+                                <div class="level-right">
+                                    <div class="level-item">
+                                        <button class="button is-secondary" id="resend-code-btn">Resend Code</button>
+                                    </div>
+                                </div>
+
+                                <div class="level-right">
+                                    <div class="level-item">
+                                        <button class="button is-success" id="confirm-code">Confirm</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
             
                     </div>
 
-                    <br>
-
-                    <div class="card login-card is-hidden">
+                    <div class="card auth-card login-card is-hidden">
                         <div class="card-content">
-                            <div class="title">
+                            <div class="title has-text-centered">
                                 Login
                             </div>
                             <div class="field">
+                                <label for="username">Email</label>
                                 <input class="input" type="email" id="username">
                             </div> 
                             <div class="field">
+                                <label for="password">Password</label>
                                 <input class="input" type="password" id="password">
                             </div>
-                            <div>
-                                <button class="button is-primary" id="login-btn">Login</button>
+
+                            <div class="has-text-right remember-me-checkbox-wrapper">
+                                <label class="checkbox">
+                                    <input type="checkbox" id="remember-me-checkbox">
+                                    Remember me
+                                </label>
+                            </div>
+                            
+
+                            <div class="level">
+                                <div class="level-right">
+                                    <div class="level-item">
+                                        <button class="button is-secondary" id="create-account-btn">Create Account</button>
+                                    </div>
+                                </div>
+
+                                <div class="level-right">
+                                    <div class="level-item">
+                                        <button class="button is-primary" id="login-btn">Login</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
             
@@ -67,8 +113,6 @@
 
                 </div>
 
-            </div>
-            
         </div>
         
     <script src="./index.js"></script>
