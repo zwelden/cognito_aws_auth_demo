@@ -1,0 +1,14 @@
+#node modules 
+node_modules/
+
+#OS X file thing 
+.DS_Store
+
+# cache 
+.cache
+
+# env 
+.env
+
+# dist 
+dist/
