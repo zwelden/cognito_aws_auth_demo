@@ -1,6 +1,18 @@
 
 html, body {
     height: 100%;
+    overflow: hidden;
+}
+
+.navbar {    
+    box-shadow: 0 0.25em 1em -0.5em rgba(10, 10, 10, 0.1);
+}
+
+.menu-title {
+    font-size: 2rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+    line-height: 3.25rem;
 }
 
 .alert-container {
@@ -8,13 +20,12 @@ html, body {
     top: -200px;
     left: 50%;
     width: 100%;
-    max-width: 900px;
     padding: 20px;
     transform: translateX(-50%);
     transition: top 0.3s ease-in-out;
 
     &.active {
-        top: 0px;
+        top: 3.25rem;
     }
 
     .message {
@@ -35,6 +46,33 @@ html, body {
     margin-bottom: 0 !important;
 }
 
+.placeholder-content {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    .card {
+        margin-top: -3rem;
+        width: 400px;
+        height: 300px;
+
+        .card-content .logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            .aws-logo {
+                height: 150px;
+                margin-left: -1rem;
+            }
+
+            .cognito-logo {
+                height: 120px;
+            }
+        }
+    }
+}
 .auth-card-container {
     height: 100%;
     display: flex;

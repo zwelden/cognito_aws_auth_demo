@@ -1,17 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html class="has-navbar-fixed-top">
     <head>
 
         <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
     <body class="has-background-white-ter">
-        <div class="alert-container">
+        <div class="alert-container container">
+            
+        </div>
+
+        <div class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+            <div class="container">
+                <div class="navbar-brand">
+                    <div class="navbard-item">
+                        <div class="menu-title">
+                            Auth Demo
+                        </div>
+                    </div>
+
+                    <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+                        <span aria-hidden="true"></span>
+                        <span aria-hidden="true"></span>
+                        <span aria-hidden="true"></span>
+                    </a>
+                </div>
+    
+                <div class="navbar-menu">
+    
+                    <div class="navbar-end">
+                        <div class="navbar-item">
+                            <div class="buttons">
+                                <button class="button is-primary" id="menu-create-account-btn">
+                                    <strong>Sign Up</strong>
+                                </button>
+                                <button class="button is-light" id="menu-login-btn">
+                                    Log In
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             
         </div>
 
         <div class="content">
+                <div class="placeholder-content">
+                    <div class="card">
+                        <div class="card-content">
+                            <div class="title has-text-centered">
+                                AWS Cognito<br><small>Auth Demo</small>
+                            </div>
+                            <div class="logos">
+                                <img class="aws-logo" src="./image/aws-logo.png">
+                                <img class="cognito-logo" src="./image/cognito-icon.png">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="auth-card-container">
-                    <div class="card auth-card create-account-card">
+                    <div class="card auth-card create-account-card is-hidden">
                         <div class="card-content">
                             <div class="title has-text-centered">
                                 Create Account

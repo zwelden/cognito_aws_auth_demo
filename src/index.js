@@ -132,12 +132,21 @@ loginBtn.onclick = (event) => {
 }
 
 
+
+
 // nav buttons
 let backToLoginBtn = document.getElementById('back-to-login-btn');
 let createAccountBtn = document.getElementById('create-account-btn');
+let menuCreateAccountBtn = document.getElementById('menu-create-account-btn');
+let menuLoginBtn = document.getElementById('menu-login-btn');
+
+// placeholder card 
+let placeholderCard = document.querySelector('.placeholder-content');
 
 // nav effects 
 let hideAllCards = (cards) => {
+    placeholderCard.classList.add('is-hidden');
+    
     cards.forEach((card) => {
         card.classList.add('is-hidden');
     });
@@ -222,6 +231,14 @@ backToLoginBtn.onclick = (event) => {
 
 createAccountBtn.onclick = (event) => {
     showCreateAccountCard();
+}
+
+menuCreateAccountBtn.onclick = (event) => {
+    showCreateAccountCard();
+}
+
+menuLoginBtn.onclick = (event) => {
+    showLoginCard();
 }
 
 window.display_alert_message = display_alert_message;
