@@ -1,23 +1,9 @@
 require('dotenv').config()
 
-import {
-    CognitoUserPool,
-    CognitoUserAttribute,
-    CognitoUser,
-    AuthenticationDetails,
-} from 'amazon-cognito-identity-js';
-
-import * as AWS from 'aws-sdk/global';
+import * as cognito from './js/cognito';
 
 import 'bulma/css/bulma.css';
 import './scss/main.scss';
-
-const poolData = {
-    UserPoolId: process.env.COGNITO_POOL_ID,
-    ClientId: process.env.COGNITO_CLIENT_ID
-}
-
-const userPool = new CognitoUserPool(poolData);
 
 // action buttons
 let registerUserBtn = document.getElementById('register-user-btn');
@@ -25,8 +11,15 @@ let confirmCodeBtn = document.getElementById('confirm-code');
 let resendCodeBtn = document.getElementById('resend-code-btn');
 let loginBtn = document.getElementById('login-btn');
 
+// nav buttons
+let backToLoginBtn = document.getElementById('back-to-login-btn');
+let createAccountBtn = document.getElementById('create-account-btn');
+let menuCreateAccountBtn = document.getElementById('menu-create-account-btn');
+let menuLoginBtn = document.getElementById('menu-login-btn');
+let homeBtn = document.querySelector('.home-btn');
 
-let cognitoUser = {};
+// placeholder card 
+let placeholderCard = document.querySelector('.placeholder-content');
 
 
 registerUserBtn.onclick = (event) => {
@@ -36,45 +29,39 @@ registerUserBtn.onclick = (event) => {
     let username = username_input.value;
     let password = password_input.value; 
 
-    userPool.signUp(username, password, [], null, function (
-        err,
-        result
-    ) {
-        if (err) {
-            display_alert_message(err.message, 'warning');
+    cognito.signupUser(username, password, (res) => {
+        if (res.error) {
+            display_alert_message(error.message, 'warning');
             return;
         }
 
-        cognitoUser = result.user;
-
-        if (result.user && result.user.authenticationFlowType === 'USER_SRP_AUTH') {
+        if (res.result && res.result === 'SUCCESS') {
             display_alert_message('Thank you for signing up. Please enter the confirmation code sent to: ' + cognitoUser.username, 'success');
-
             showConfirmCodeEnterCard();
+            return;
         }
 
-        console.log(result);
-    })
+        display_alert_message('An unknown error occured. Unable to signup. Please try again', 'warning');
+    });
 } 
 
 confirmCodeBtn.onclick = (event) => {
     let code_input = document.getElementById('auth-confirm-code');
     let code_val = code_input.value;
 
-    cognitoUser.confirmRegistration(code_val, true, function (err, result) {
-        if (err) {
-            display_alert_message(err.message, 'warning');
+    cognito.confirmCodeEntry(code_val, (res) => {
+        if (res.error) {
+            display_alert_message(error.message, 'warning');
             return;
         }
 
-
-        if (result === 'SUCCESS') {
+        if (res.result && res.result === 'SUCCESS') {
             display_alert_message('Sign up completed successfully! You can now login in.', 'success');
-
             showLoginCard();
+            return;
         }
 
-        console.log(result);
+        display_alert_message('An unknown error occured. Unable to signup. Please try again', 'warning');
     });
 }
 
@@ -86,67 +73,29 @@ loginBtn.onclick = (event) => {
     let username = username_input.value;
     let password = password_input.value; 
 
-    let authenticationData = {
-        Username: username,
-        Password: password
-    };
-
-    let authenticationDetails = new AuthenticationDetails(authenticationData);
-
-    let userData = {
-        Username: username,
-        Pool: userPool
-    };
-
-    cognitoUser = new CognitoUser(userData);
-
-    cognitoUser.authenticateUser(authenticationDetails, {
-        onSuccess: (result) => {
-            let accessToken = result.getAccessToken().getJwtToken();
-
-            AWS.config.region = 'us-east-1';
-
-            let credentials_obj = {
-                Logins: {}
-            };
-            credentials_obj.Logins['cognito-idp.us-east-1.amazonaws.com/' + process.env.COGNITO_POOL_ID] = result.getIdToken().getJwtToken();
-            credentials_obj.IdentityPoolId = process.env.IDENTITY_POOL_ID;
-
-            AWS.config.credentials = new AWS.CognitoIdentityCredentials(credentials_obj);
-
-            AWS.config.credentials.refresh(error => {
-                if (error) {
-                    console.log('refresh error');
-                    console.log(error);
-                } else {
-                    display_alert_message('Successfully logged in!', 'success');
-                }
-            })
-        },
-        onFailure: (err) => {
-            console.log('onFailuer err');
-            console.log(err)
-            display_alert_message(err.message, 'warning');
+    cognito.attemptLogin(username, password, (res) => {
+        if (res.error) {
+            display_alert_message(error.message, 'warning');
+            return;
         }
-    })
+
+        if (res.result && res.result === 'SUCCESS') {
+            display_alert_message('Successfully logged in!', 'success');
+            updateLoggedInStatus(true);
+            return;
+        }
+
+        display_alert_message('An unknown error occured. Unable to signup. Please try again', 'warning');
+    });
 }
 
 
 
 
-// nav buttons
-let backToLoginBtn = document.getElementById('back-to-login-btn');
-let createAccountBtn = document.getElementById('create-account-btn');
-let menuCreateAccountBtn = document.getElementById('menu-create-account-btn');
-let menuLoginBtn = document.getElementById('menu-login-btn');
-
-// placeholder card 
-let placeholderCard = document.querySelector('.placeholder-content');
-
 // nav effects 
 let hideAllCards = (cards) => {
     placeholderCard.classList.add('is-hidden');
-    
+
     cards.forEach((card) => {
         card.classList.add('is-hidden');
     });
@@ -217,12 +166,33 @@ let display_alert_message = (message, type) => {
 }
 
 
+let updateLoggedInStatus = (isLoggedIn) => {
+    let loggedInStatusMessage = document.querySelector('.login-status-message');
+
+    if (isLoggedIn === true) {
+        loggedInStatusMessage.querySelector('.message-body').innerText = 'Logged In.';
+        loggedInStatusMessage.classList.remove('is-warning');
+        loggedInStatusMessage.classList.add('is-success');
+    } else {
+        loggedInStatusMessage.querySelector('.message-body').innerText = 'Not Logged In.';
+        loggedInStatusMessage.classList.remove('is-success');
+        loggedInStatusMessage.classList.add('is-warning');
+    }
+}
+
+
 let dismiss_alert_message = () => {
     let alert_container = document.querySelector('.alert-container');
     
     alert_container.classList.remove('active');
 }
 
+
+let showHomeCard = () => {
+    let cards = document.querySelectorAll('.auth-card');
+    hideAllCards(cards);
+    placeholderCard.classList.remove('is-hidden');
+}
 
 
 backToLoginBtn.onclick = (event) => {
@@ -239,6 +209,10 @@ menuCreateAccountBtn.onclick = (event) => {
 
 menuLoginBtn.onclick = (event) => {
     showLoginCard();
+}
+
+homeBtn.onclick = (event) => {
+    showHomeCard();
 }
 
 window.display_alert_message = display_alert_message;
