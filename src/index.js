@@ -1,9 +1,12 @@
 require('dotenv').config()
 
 import * as cognito from './js/cognito';
+import aws4 from "aws4";
 
 import 'bulma/css/bulma.css';
 import './scss/main.scss';
+
+const axios = require('axios');
 
 // action buttons
 let registerUserBtn = document.getElementById('register-user-btn');
@@ -17,6 +20,7 @@ let createAccountBtn = document.getElementById('create-account-btn');
 let menuCreateAccountBtn = document.getElementById('menu-create-account-btn');
 let menuLoginBtn = document.getElementById('menu-login-btn');
 let homeBtn = document.querySelector('.home-btn');
+let signOutBtn = document.getElementById('menu-sign-out-btn');
 
 // placeholder card 
 let placeholderCard = document.querySelector('.placeholder-content');
@@ -31,12 +35,12 @@ registerUserBtn.onclick = (event) => {
 
     cognito.signupUser(username, password, (res) => {
         if (res.error) {
-            display_alert_message(error.message, 'warning');
+            display_alert_message(res.error.message, 'warning');
             return;
         }
 
         if (res.result && res.result === 'SUCCESS') {
-            display_alert_message('Thank you for signing up. Please enter the confirmation code sent to: ' + cognitoUser.username, 'success');
+            display_alert_message('Thank you for signing up. Please enter the confirmation code sent to: ' + username, 'success');
             showConfirmCodeEnterCard();
             return;
         }
@@ -51,7 +55,7 @@ confirmCodeBtn.onclick = (event) => {
 
     cognito.confirmCodeEntry(code_val, (res) => {
         if (res.error) {
-            display_alert_message(error.message, 'warning');
+            display_alert_message(res.error.message, 'warning');
             return;
         }
 
@@ -69,19 +73,31 @@ confirmCodeBtn.onclick = (event) => {
 loginBtn.onclick = (event) => {
     let username_input = document.getElementById('username');
     let password_input = document.getElementById('password');
+    let rememberMeCheckbox = document.getElementById('remember-me-checkbox');
 
     let username = username_input.value;
     let password = password_input.value; 
 
     cognito.attemptLogin(username, password, (res) => {
         if (res.error) {
-            display_alert_message(error.message, 'warning');
+            display_alert_message(res.error.message, 'warning');
+            return;
+        }
+
+        if (res.fail) {
+            display_alert_message(res.fail.message, 'danger');
             return;
         }
 
         if (res.result && res.result === 'SUCCESS') {
             display_alert_message('Successfully logged in!', 'success');
             updateLoggedInStatus(true);
+
+            if (rememberMeCheckbox.checked === true) {
+                cognito.rememberDevice((res) => {
+                    console.log(res);
+                });
+            }
             return;
         }
 
@@ -215,6 +231,105 @@ homeBtn.onclick = (event) => {
     showHomeCard();
 }
 
+signOutBtn.onclick = (event) => {
+    cognito.signOut();
+}
+
+
+let accessEndpoint = () => {
+    // let endpoint = process.env.API_ENDPOINT;
+
+    let userCredentials = cognito.getUserCredentials();
+
+    console.log('user credentials');
+    console.log(userCredentials);
+
+    const { accessKeyId, secretAccessKey } = userCredentials;
+    const sessionToken = userCredentials.params.Logins['cognito-idp.'+ process.env.AWS_REGION +'.amazonaws.com/' + process.env.COGNITO_POOL_ID];
+
+    const request = {
+        // "host": process.env.API_HOST,
+        "method": "GET",
+        "url": "https://" + process.env.API_HOST + "/dev/auth",
+        // "path": '/dev/auth',
+        "headers": {
+            "Authorization": sessionToken
+        }
+    };
+
+    console.log(request);
+
+    // // const { accessKeyId, secretAccessKey, sessionToken } = userCredentials;
+
+    // const signedRequest = aws4.sign(request, { 
+    //     accessKeyId: accessKeyId, 
+    //     secretAccessKey: secretAccessKey, 
+    //     sessionToken: sessionToken 
+    // });
+
+    // delete signedRequest.headers['Host'];
+    // delete signedRequest.headers['Content-Length'];
+
+    // console.log(userCredentials);
+    // console.log(signedRequest);
+
+
+    axios(request).then((res) => {
+        console.log(res);
+    })
+    .catch((err) => {
+        console.log('error');
+        console.log(err);
+    })
+    // axios.get(endpoint, {
+    //     params: {
+
+    //     }
+    // });
+
+
+
+    // var myHeaders = new Headers();
+    // myHeaders.append("Authorization", sessionToken);
+
+    // var requestOptions = {
+    //     method: 'GET',
+    //     headers: myHeaders,
+    //     redirect: 'follow'
+    // };
+
+    // fetch("https://ez4ysz46u8.execute-api.us-east-1.amazonaws.com/dev/auth", requestOptions)
+    //     .then(response => response.text())
+    //     .then(result => console.log(result))
+    //     .catch(error => console.log('error', error));
+}
+
+let accessEndpointNoAuth = () => {
+    axios.get('https://' + process.env.API_HOST + '/dev/auth').then((res) => {
+        console.log(res);
+    })
+    .catch((err) => {
+        console.log('error');
+        console.log(err);
+    })
+    // axios.get(endpoint, {
+    //     params: {
+
+    //     }
+    // });
+}
+
+
+
+
 window.display_alert_message = display_alert_message;
 window.dismiss_alert_message = dismiss_alert_message;
 window.showConfirmCodeEnterCard = showConfirmCodeEnterCard;
+window.accessEndpoint = accessEndpoint;
+window.accessEndpointNoAuth = accessEndpointNoAuth;
+
+// load up session if possible 
+
+cognito.setCognitoUserFromSession((res) => {
+    console.log(res)
+});

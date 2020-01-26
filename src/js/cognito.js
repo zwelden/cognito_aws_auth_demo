@@ -7,7 +7,8 @@ import {
 
 import * as AWS from 'aws-sdk/global';
 
-const debug = false;
+
+const debug = true;
 
 const poolData = {
     UserPoolId: process.env.COGNITO_POOL_ID,
@@ -40,6 +41,7 @@ exports.signupUser = (username, password, callback) => {
                 callback({
                     error: err
                 });
+                return;
             }
         }
 
@@ -97,6 +99,9 @@ exports.attemptLogin = (username, password, callback) => {
         Password: password
     };
 
+    console.log(username);
+    console.log(password);
+
     let authenticationDetails = new AuthenticationDetails(authenticationData);
 
     if (!cognitoUser || !cognitoUser.Username) {
@@ -107,7 +112,7 @@ exports.attemptLogin = (username, password, callback) => {
         onSuccess: (result) => {
             let accessToken = result.getAccessToken().getJwtToken();
 
-            AWS.config.region = 'us-east-1';
+            AWS.config.region = process.env.AWS_REGION;
 
             let credentials_obj = {
                 Logins: {}
@@ -146,4 +151,96 @@ exports.attemptLogin = (username, password, callback) => {
             }
         }
     });
+}
+
+
+exports.rememberDevice = (callback) => {
+    cognitoUser.setDeviceStatusRemembered({
+        onSuccess: (res) => {
+            if (typeof callback === 'function') {
+                callback({
+                    result: res
+                });
+            }
+        },
+        onFailure: (err) => {
+            if (typeof callback === 'function') {
+                callback({
+                    error: err
+                });
+            }
+        }
+    });
+}
+
+
+exports.setCognitoUserFromSession = (callback) => {
+    cognitoUser = userPool.getCurrentUser();
+
+    if (cognitoUser != null) {
+        cognitoUser.getSession((err, session) => {
+            if (err) {
+                if (typeof callback === 'function') {
+                    callback({
+                        error: err
+                    });
+
+                    return;
+                }
+            }
+
+            if (debug === true) {
+                console.log('session validity: ' + session.isValid());
+                console.log(session);
+            }
+
+            cognitoUser.getUserAttributes((err, attributes) => {
+                if (err) {
+                    if (debug === true) {
+                        console.log(err);
+                    }
+                } else {
+                    // Do something with attributes
+                }
+            });
+
+            let credentials_obj = {
+                Logins: {}
+            };
+            credentials_obj.Logins['cognito-idp.'+ process.env.AWS_REGION +'.amazonaws.com/' + process.env.COGNITO_POOL_ID] = session.getIdToken().getJwtToken();
+            credentials_obj.IdentityPoolId = process.env.IDENTITY_POOL_ID;
+
+            console.log(credentials_obj);
+
+            AWS.config.region = process.env.AWS_REGION;
+            AWS.config.credentials = new AWS.CognitoIdentityCredentials(credentials_obj);
+            
+
+            AWS.config.credentials.refresh(err => {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(AWS.config.credentials);
+                }
+            })
+           
+
+            // instantiate service objects
+
+            if (typeof callback === 'function') {
+                callback({
+                    result: 'SUCCESS'
+                });
+            }
+        });
+    }
+}
+
+
+exports.getUserCredentials = () => {
+    return AWS.config.credentials;
+}
+
+exports.signOut = () => {
+    cognitoUser.signOut();
 }
