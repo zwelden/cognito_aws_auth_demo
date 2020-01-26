@@ -96,3 +96,20 @@ html, body {
     width: 175px;
 }
 
+.authentication-status-message {
+    margin-bottom: .5rem !important;
+}
+
+.access-content-btn-wrapper {
+    margin-bottom: 2rem;
+}
+
+.access-endpoint-result {
+    padding: 1rem;
+    border-radius: 5px;
+
+    .endpoint-result-title {
+        font-size: 1.2rem;
+        margin-bottom: .5rem;
+    }
+}

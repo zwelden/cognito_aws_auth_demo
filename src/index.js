@@ -8,19 +8,22 @@ import './scss/main.scss';
 
 const axios = require('axios');
 
+const debug = false;
+
 // action buttons
 let registerUserBtn = document.getElementById('register-user-btn');
 let confirmCodeBtn = document.getElementById('confirm-code');
 let resendCodeBtn = document.getElementById('resend-code-btn');
 let loginBtn = document.getElementById('login-btn');
+let accessContentBtn = document.getElementById('access-endpoint-btn');
 
 // nav buttons
 let backToLoginBtn = document.getElementById('back-to-login-btn');
 let createAccountBtn = document.getElementById('create-account-btn');
 let menuCreateAccountBtn = document.getElementById('menu-create-account-btn');
 let menuLoginBtn = document.getElementById('menu-login-btn');
-let homeBtn = document.querySelector('.home-btn');
 let signOutBtn = document.getElementById('menu-sign-out-btn');
+let homeBtn = document.querySelector('.home-btn');
 
 // placeholder card 
 let placeholderCard = document.querySelector('.placeholder-content');
@@ -81,30 +84,43 @@ loginBtn.onclick = (event) => {
     cognito.attemptLogin(username, password, (res) => {
         if (res.error) {
             display_alert_message(res.error.message, 'warning');
+            updateAuthenticatedStatus(false);
+            toggleMenuAuthOptBtns(false);
             return;
         }
 
         if (res.fail) {
             display_alert_message(res.fail.message, 'danger');
+            updateAuthenticatedStatus(false);
+            toggleMenuAuthOptBtns(false);
             return;
         }
 
         if (res.result && res.result === 'SUCCESS') {
             display_alert_message('Successfully logged in!', 'success');
-            updateLoggedInStatus(true);
+            updateAuthenticatedStatus(true);
 
             if (rememberMeCheckbox.checked === true) {
                 cognito.rememberDevice((res) => {
                     console.log(res);
                 });
             }
+
+            showAccessEndpointCard();
+            toggleMenuAuthOptBtns(true);
             return;
         }
 
+        updateAuthenticatedStatus(false);
+        toggleMenuAuthOptBtns(false);
         display_alert_message('An unknown error occured. Unable to signup. Please try again', 'warning');
     });
 }
 
+
+accessContentBtn.onclick = (event) => {
+    accessEndpoint();
+}
 
 
 
@@ -147,6 +163,17 @@ let showCreateAccountCard = () => {
     createAccountCard.classList.remove('is-hidden');
 }
 
+
+let showAccessEndpointCard = () => {
+    let cards = document.querySelectorAll('.auth-card');
+    let accessEndpointCard = document.querySelector('.access-endpoint-card');
+
+    hideAllCards(cards);
+
+    accessEndpointCard.classList.remove('is-hidden');
+}
+
+
 let display_alert_message = (message, type) => {
     let alert_container = document.querySelector('.alert-container');
 
@@ -182,17 +209,28 @@ let display_alert_message = (message, type) => {
 }
 
 
-let updateLoggedInStatus = (isLoggedIn) => {
-    let loggedInStatusMessage = document.querySelector('.login-status-message');
+let updateAuthenticatedStatus = (isAuthenticated) => {
+    let authenticatedStatusEl = document.querySelector('.authentication-status-message');
 
-    if (isLoggedIn === true) {
-        loggedInStatusMessage.querySelector('.message-body').innerText = 'Logged In.';
-        loggedInStatusMessage.classList.remove('is-warning');
-        loggedInStatusMessage.classList.add('is-success');
+    if (isAuthenticated === true) {
+        authenticatedStatusEl.classList.remove('is-danger');
+        authenticatedStatusEl.classList.add('is-success');
     } else {
-        loggedInStatusMessage.querySelector('.message-body').innerText = 'Not Logged In.';
-        loggedInStatusMessage.classList.remove('is-success');
-        loggedInStatusMessage.classList.add('is-warning');
+        authenticatedStatusEl.classList.remove('is-success');
+        authenticatedStatusEl.classList.add('is-danger');
+    }
+}
+
+
+let updateAuthorizedStatus = (isAuthorized) => {
+    let authorizedStatusEl = document.querySelector('.authorization-status-message');
+
+    if (isAuthorized === true) {
+        authorizedStatusEl.classList.remove('is-danger');
+        authorizedStatusEl.classList.add('is-success');
+    } else {
+        authorizedStatusEl.classList.remove('is-success');
+        authorizedStatusEl.classList.add('is-danger');
     }
 }
 
@@ -210,6 +248,30 @@ let showHomeCard = () => {
     placeholderCard.classList.remove('is-hidden');
 }
 
+
+let signoutApp = () => {
+    cognito.signOut();
+    updateAuthenticatedStatus(false);
+    updateAuthorizedStatus(false);
+    toggleMenuAuthOptBtns(false);
+    showHomeCard();
+}
+
+
+
+let toggleMenuAuthOptBtns = (isLoggedIn) => {
+    if (isLoggedIn === true) {
+        menuCreateAccountBtn.classList.add('is-hidden');
+        menuLoginBtn.classList.add('is-hidden');
+        signOutBtn.classList.remove('is-hidden');
+
+        return;
+    }
+    
+    menuCreateAccountBtn.classList.remove('is-hidden');
+    menuLoginBtn.classList.remove('is-hidden');
+    signOutBtn.classList.add('is-hidden');
+}
 
 backToLoginBtn.onclick = (event) => {
     showLoginCard();
@@ -232,76 +294,71 @@ homeBtn.onclick = (event) => {
 }
 
 signOutBtn.onclick = (event) => {
-    cognito.signOut();
+    signoutApp();
 }
 
 
 let accessEndpoint = () => {
-    // let endpoint = process.env.API_ENDPOINT;
-
     let userCredentials = cognito.getUserCredentials();
 
-    console.log('user credentials');
-    console.log(userCredentials);
+    let statusSpan = document.querySelector('.endpoint-result-status');
+    let messageSpan = document.querySelector('.endpoint-result-message');
+    let randNumSpan = document.querySelector('.endpoint-result-rand-num');
 
-    const { accessKeyId, secretAccessKey } = userCredentials;
+    statusSpan.innerText = 'Pending';
+    messageSpan.innerText = '';
+    randNumSpan.innerText = '';
+
+    if (debug === true) {
+        console.log('user credentials');
+        console.log(userCredentials);
+    }
+    
+
     const sessionToken = userCredentials.params.Logins['cognito-idp.'+ process.env.AWS_REGION +'.amazonaws.com/' + process.env.COGNITO_POOL_ID];
 
     const request = {
-        // "host": process.env.API_HOST,
         "method": "GET",
         "url": "https://" + process.env.API_HOST + "/dev/auth",
-        // "path": '/dev/auth',
         "headers": {
             "Authorization": sessionToken
         }
     };
 
-    console.log(request);
-
-    // // const { accessKeyId, secretAccessKey, sessionToken } = userCredentials;
-
-    // const signedRequest = aws4.sign(request, { 
-    //     accessKeyId: accessKeyId, 
-    //     secretAccessKey: secretAccessKey, 
-    //     sessionToken: sessionToken 
-    // });
-
-    // delete signedRequest.headers['Host'];
-    // delete signedRequest.headers['Content-Length'];
-
-    // console.log(userCredentials);
-    // console.log(signedRequest);
-
-
+    if (debug === true) {
+        console.log(request);
+    }
+    
     axios(request).then((res) => {
         console.log(res);
+
+        let res_body = JSON.parse(res.data.body);
+
+        let status = res_body.status;
+        let message = res_body.message;
+        let randNum = res_body.rand_num;
+
+        if (status === 'success') {
+            updateAuthorizedStatus(true);
+            display_alert_message('Successfully accessed restricted content', 'success');
+
+            statusSpan.innerText = status;
+            messageSpan.innerText = message;
+            randNumSpan.innerText = randNum;
+        }
+        else {
+            updateAuthorizedStatus(false);
+            display_alert_message('Unable to access restricted content', 'warning');
+            statusSpan.innerText = 'access failed';
+        }
     })
     .catch((err) => {
         console.log('error');
         console.log(err);
-    })
-    // axios.get(endpoint, {
-    //     params: {
-
-    //     }
-    // });
-
-
-
-    // var myHeaders = new Headers();
-    // myHeaders.append("Authorization", sessionToken);
-
-    // var requestOptions = {
-    //     method: 'GET',
-    //     headers: myHeaders,
-    //     redirect: 'follow'
-    // };
-
-    // fetch("https://ez4ysz46u8.execute-api.us-east-1.amazonaws.com/dev/auth", requestOptions)
-    //     .then(response => response.text())
-    //     .then(result => console.log(result))
-    //     .catch(error => console.log('error', error));
+        updateAuthorizedStatus(false);
+        display_alert_message('Unable to access restricted content', 'warning');
+        statusSpan.innerText = 'access failed';
+    });
 }
 
 let accessEndpointNoAuth = () => {
@@ -311,12 +368,7 @@ let accessEndpointNoAuth = () => {
     .catch((err) => {
         console.log('error');
         console.log(err);
-    })
-    // axios.get(endpoint, {
-    //     params: {
-
-    //     }
-    // });
+    });
 }
 
 
@@ -331,5 +383,16 @@ window.accessEndpointNoAuth = accessEndpointNoAuth;
 // load up session if possible 
 
 cognito.setCognitoUserFromSession((res) => {
-    console.log(res)
+
+    if (debug === true) {
+        console.log(res);
+    }
+    
+
+    if (res.result === 'SUCCESS') {
+        display_alert_message('Successfully logged in from a stored session!', 'success');
+        updateAuthenticatedStatus(true);
+        showAccessEndpointCard();
+        toggleMenuAuthOptBtns(true);
+    }
 });

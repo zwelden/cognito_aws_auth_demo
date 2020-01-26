@@ -223,7 +223,6 @@ exports.setCognitoUserFromSession = (callback) => {
                     console.log(AWS.config.credentials);
                 }
             })
-           
 
             // instantiate service objects
 

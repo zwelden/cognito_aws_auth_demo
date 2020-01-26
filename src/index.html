@@ -30,7 +30,7 @@
                     <div class="navbar-end">
                         <div class="navbar-item">
                             <div class="buttons">
-                                <button class="button is-text" id="menu-sign-out-btn">
+                                <button class="button is-light is-hidden" id="menu-sign-out-btn">
                                     Sign Out
                                 </button>
                                 <button class="button is-primary" id="menu-create-account-btn">
@@ -159,14 +159,49 @@
             
                     </div>
 
+
+                    <div class="card auth-card access-endpoint-card is-hidden">
+                        <div class="card-content">
+                            <div class="title has-text-centered">
+                                Logged In!<br>
+                                <small>Access logged in only content</small>
+                            </div>
+                            <div class="has-text-centered access-content-btn-wrapper">
+
+                                <button class="button is-info is-large" id="access-endpoint-btn">
+                                    Access Content
+                                </button>
+                            </div>
+
+                            <div class="access-endpoint-result has-background-light">
+                                <div class="endpoint-result-title has-text-centered">
+                                    Logged In only content result
+                                </div>
+                                <div>
+                                    Status: <span class="endpoint-result-status"></span>
+                                    <br>
+                                    Message: <span class="endpoint-result-message"></span>
+                                    <br>
+                                    Random Number: <span class="endpoint-result-rand-num"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
         </div>
 
         <div class="login-status-container">
-            <div class="message is-warning login-status-message">
+            <div class="message is-danger authentication-status-message">
                 <div class="message-body">
-                    Not Logged In
+                    Authenticated
+                </div>
+            </div>
+
+            <div class="message is-danger authorization-status-message">
+                <div class="message-body">
+                    Authorized
                 </div>
             </div>
         </div>
