@@ -83,7 +83,9 @@ html, body {
         margin-top: -3rem;
         width: 400px;
 
-        .remember-me-checkbox-wrapper {
+        .login-actions-wrapper {
+            display: flex;
+            justify-content: space-between;
             margin-bottom: 1rem;
         }
     }

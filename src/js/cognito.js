@@ -3,6 +3,7 @@ import {
     CognitoUserAttribute,
     CognitoUser,
     AuthenticationDetails,
+
 } from 'amazon-cognito-identity-js';
 
 import * as AWS from 'aws-sdk/global';
@@ -31,8 +32,19 @@ let constructCognitoUser = (username, userPool) => {
 };
 
 
-exports.signupUser = (username, password, callback) => {
-    userPool.signUp(username, password, [], null, function (
+exports.signupUser = (username, password, email, callback) => {
+    let attributeList = [];
+
+    let dataEmail = {
+        Name: 'email',
+        Value: email
+    };
+
+    var attributeEmail = new CognitoUserAttribute(dataEmail);
+
+    attributeList.push(attributeEmail);
+
+    userPool.signUp(username, password, attributeList, null, function (
         err,
         result
     ) {
@@ -81,9 +93,11 @@ exports.confirmCodeEntry = (code_val, callback) => {
         }
     
         if (result === 'SUCCESS') {
-            callback({
-                result: result
-            });
+            if (typeof callback === 'function') {
+                callback({
+                    result: result
+                });
+            }
         }
 
         if (debug === true) {
@@ -91,6 +105,33 @@ exports.confirmCodeEntry = (code_val, callback) => {
         }
     });
 };
+
+
+exports.resendConfirmationCode = (callback) => {
+    cognitoUser.resendConfirmationCode((err, result) => {
+        if (err) {
+            if (typeof callback === 'function') {
+                callback({
+                    error: err
+                });
+            }
+            
+            return;
+        }
+
+        if (result === 'SUCCESS') {
+            if (typeof callback === 'function') {
+                callback({
+                    result: result
+                });
+            }
+        }
+        
+        if (debug === true) {
+            console.log(result);
+        }
+    });
+}
 
 
 exports.attemptLogin = (username, password, callback) => {
@@ -151,6 +192,48 @@ exports.attemptLogin = (username, password, callback) => {
             }
         }
     });
+};
+
+
+exports.getForgotPasswordCode = (username, callback) => {
+    cognitoUser = constructCognitoUser(username, userPool);
+
+    cognitoUser.forgotPassword({
+        onSuccess: (data) => {
+            if (typeof callback === 'function') {
+                callback({
+                    data: data
+                });
+            }
+        },
+        onFailure: (err) => {
+            if (typeof callback === 'function') {
+                callback({
+                    error: err
+                });
+            }
+        }
+    });
+};
+
+
+exports.setNewPassword = (verificationCode, newPassword, callback) => {
+    cognitoUser.confirmPassword(verificationCode, newPassword, {
+        onSuccess() {
+            if (typeof callback === 'function') {
+                callback({
+                    result: 'success'
+                });
+            }
+        },
+        onFailure(err) {
+            if (typeof callback === 'function') {
+                callback({
+                    error: err
+                });
+            }
+        }
+    })
 }
 
 
@@ -171,7 +254,7 @@ exports.rememberDevice = (callback) => {
             }
         }
     });
-}
+};
 
 
 exports.setCognitoUserFromSession = (callback) => {

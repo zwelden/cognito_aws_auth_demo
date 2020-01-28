@@ -16,6 +16,8 @@ let confirmCodeBtn = document.getElementById('confirm-code');
 let resendCodeBtn = document.getElementById('resend-code-btn');
 let loginBtn = document.getElementById('login-btn');
 let accessContentBtn = document.getElementById('access-endpoint-btn');
+let forgotPasswordLink = document.getElementById('forgot-password-link');
+let saveNewPasswordBtn = document.getElementById('save-new-password-btn');
 
 // nav buttons
 let backToLoginBtn = document.getElementById('back-to-login-btn');
@@ -35,8 +37,9 @@ registerUserBtn.onclick = (event) => {
 
     let username = username_input.value;
     let password = password_input.value; 
+    let email = username; // username is an email address.
 
-    cognito.signupUser(username, password, (res) => {
+    cognito.signupUser(username, password, email, (res) => {
         if (res.error) {
             display_alert_message(res.error.message, 'warning');
             return;
@@ -69,6 +72,16 @@ confirmCodeBtn.onclick = (event) => {
         }
 
         display_alert_message('An unknown error occured. Unable to signup. Please try again', 'warning');
+    });
+}
+
+
+resendCodeBtn.onclick = (event) => {
+    cognito.resendConfirmationCode((res) => {
+        if (res.error) {
+            display_alert_message(res.error.message, 'warning');
+            return;
+        }
     });
 }
 
@@ -118,6 +131,62 @@ loginBtn.onclick = (event) => {
 }
 
 
+forgotPasswordLink.onclick = (event) => {
+    let new_password_username = document.getElementById('new-password-username');
+    let username_input = document.getElementById('username');
+
+    let username = username_input.value;
+    new_password_username.value = username;
+    
+    cognito.getForgotPasswordCode(username, (res) => {
+        if (res.error) {
+            display_alert_message('Unable to send password reset code. Error: ' + error, 'warning');
+
+            return;
+        }
+
+        if (res.CodeDeliveryDetails) {
+            display_alert_message('A password reset code has been send to ' + res.CodeDeliveryDetails.Destination, 'info');
+
+            return;
+        }
+    });
+
+    showForgotPasswordCard();
+}
+
+
+saveNewPasswordBtn.onclick = (event) => {
+    let username_input = document.getElementById('new-password-username');
+    let verification_code_input = document.getElementById('forgot-password-code');
+    let password_input = document.getElementById('new-password');
+    let password_confirm_input = document.getElementById('new-password-confirm');
+
+    let verification_code = verification_code_input.value;
+    let username = username_input.value;
+    let password = password_input.value; 
+    let password_confirm = password_confirm_input.value;
+
+    if (password !== password_confirm) {
+        display_alert_message('Password and confirm password do not match', 'warning');
+    }
+
+    cognito.setNewPassword(verification_code, password, (res) => {
+        if (res.error) {
+            display_alert_message('Unable to change password. Error: ' + res.error, 'danger');
+            return;
+        }
+
+        if (res.result && res.result === 'success') {
+            display_alert_message('password successfully changed!', 'success');
+            showLoginCard();
+            return;
+        }
+    })
+}
+
+
+
 accessContentBtn.onclick = (event) => {
     accessEndpoint();
 }
@@ -162,6 +231,17 @@ let showCreateAccountCard = () => {
 
     createAccountCard.classList.remove('is-hidden');
 }
+
+
+let showForgotPasswordCard = () => {
+    let cards = document.querySelectorAll('.auth-card');
+    let createAccountCard = document.querySelector('.forgot-password-card');
+
+    hideAllCards(cards);
+
+    createAccountCard.classList.remove('is-hidden');
+}
+
 
 
 let showAccessEndpointCard = () => {
@@ -255,6 +335,7 @@ let signoutApp = () => {
     updateAuthorizedStatus(false);
     toggleMenuAuthOptBtns(false);
     showHomeCard();
+    display_alert_message('Succsessfully signed out.', 'success');
 }
 
 
